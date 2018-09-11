@@ -22,7 +22,10 @@ module.exports = {
    * @returns {{clientId: String, scopes: String[], type: String}}
    */
   valid: (token) => {
-    return jwt.verify(token, config.jwt.secret);
+    const tokenData =  jwt.verify(token, config.jwt.secret);
+    if (!(tokenData.type && tokenData.type === TYPE))
+      throw new errors.WrongTokenError('not client token');
+    return tokenData;
   },
   /**
    * @param {String} clientId

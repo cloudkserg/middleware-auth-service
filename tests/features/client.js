@@ -9,6 +9,8 @@ const models = require('../../models'),
   expect = require('chai').expect,
   request = require('request-promise'),
   jwt = require('jsonwebtoken'),
+  generateToken = require('../utils/generateToken'),
+  checkToken = require('../utils/checkToken'),
   password = require('../../utils/password');
 
 
@@ -21,6 +23,10 @@ module.exports = (ctx) => {
     ctx.client = await models.clientModel.create({
       clientId: 11, 
       secret: await password.hash('secret')});
+  });
+
+  after (async () => {
+    delete ctx.client;
   });
 
 
@@ -47,14 +53,7 @@ module.exports = (ctx) => {
 
 
   it('POST /tokens/refresh - create tokens on post /tokens, refresh tokens, and check this work ', async () => {
-    const responseOne = await request(`http://localhost:${config.http.port}/tokens`, {
-      method: 'POST',
-      json: {
-        id: ctx.client.clientId,
-        secret: ctx.client.secret,
-        scopes: ['abba']
-      }
-    });
+    const responseOne = await generateToken(ctx.client, ['abba'], true);
     const refreshToken = responseOne.refreshToken;
 
     const response = await request(`http://localhost:${config.http.port}/tokens/refresh`, {
@@ -69,42 +68,18 @@ module.exports = (ctx) => {
     expect(token.clientId).to.equal(ctx.client.clientId);
     expect(token.scopes).deep.equal(['abba']);
 
-    const responseTwo = await request(`http://localhost:${config.http.port}/tokens/check`, {
-      method: 'GET',
-      json: {
-        id: ctx.client.clientId,
-        token: response.token,
-        scope: 'abba'
-      }
-    });
-    //after generate address
-    expect(responseTwo.ok).to.equal(true);
-
+    const result = await checkToken(token.clientId, token, 'abba');
+    expect(result).to.equal(true);
   });
 
   it('POST /tokens/blacklist - create token, check that work, add to blacklist and check that not work', async () => {
-    let response = await request(`http://localhost:${config.http.port}/tokens`, {
-      method: 'POST',
-      json: {
-        id: ctx.client.clientId,
-        secret: ctx.client.secret,
-        scopes: ['abba']
-      }
-    });
-    const token = response.token;
+    const token = generateToken(ctx.client, ['abba']);
 
-    response = await request(`http://localhost:${config.http.port}/tokens/check`, {
-      method: 'GET',
-      json: {
-        id: ctx.client.clientId,
-        token: token,
-        scope: 'abba'
-      }
-    });
-    //after generate address
-    expect(response.ok).to.equal(true);
+    let result = await checkToken(ctx.client.clientId, token, 'abba');
+    expect(result).to.equal(true);
 
-    response = await request(`http://localhost:${config.http.port}/tokens/blacklist`, {
+
+    const response = await request(`http://localhost:${config.http.port}/tokens/blacklist`, {
       method: 'POST',
       json: {
         token: token,
@@ -114,30 +89,16 @@ module.exports = (ctx) => {
     //after generate address
     expect(response.ok).to.equal(true);
 
-    response = await request(`http://localhost:${config.http.port}/tokens/check`, {
-      method: 'GET',
-      json: {
-        id: ctx.client.clientId,
-        token: token,
-        scope: 'abba'
-      }
-    }).catch(e => { return e; });
+    result = await checkToken(ctx.client.clientId, token, 'abba');
     //after generate address
-    expect(response.statusCode).to.equal(400);
-    expect(response.error).to.equal('Failure in check token request');
+    expect(result.statusCode).to.equal(400);
+    expect(result.error).to.equal('Failure in check token request');
 
   });
 
 
-  it('GET /tokens/check - create tokens and check that token works', async () => {
-    const responseOne = await request(`http://localhost:${config.http.port}/tokens`, {
-      method: 'POST',
-      json: {
-        id: ctx.client.clientId,
-        secret: ctx.client.secret,
-        scopes: ['abba', 'bart']
-      }
-    });
+  it('GET /tokens/check - generate token with two scopes and check that token works', async () => {
+    const responseOne = await generateToken(ctx.client, ['abba', 'bart']);
 
     const response = await request(`http://localhost:${config.http.port}/tokens/check`, {
       method: 'GET',

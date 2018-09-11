@@ -18,38 +18,12 @@ module.exports = (ctx) => {
 
   });
 
-
-  it('POST /services - create service', async () => {
+  it('POST /services - without parameters  - error', async () => {
     const response = await request(`http://localhost:${config.http.port}/services`, {
       method: 'POST',
       json: {
-        id: 'service',
-        secret: 'password'
       }
-    });
-    //after generate address
-    expect(response.ok).to.equal(true);
+    }).catch(e => { return e; });
+    expect(response.statusCode).to.equal(400);
   });
-
-  it('POST /services - create service and create token', async () => {
-    await request(`http://localhost:${config.http.port}/services`, {
-      method: 'POST',
-      json: {
-        id: 'service2',
-        secret: 'password'
-      }
-    });
-
-
-    const response = await request(`http://localhost:${config.http.port}/tokens`, {
-      method: 'POST',
-      json: {
-        id: 'service',
-        secret: 'password',
-        scopes: ['abba']
-      }
-    });
-    expect(response.ok).to.be.equal(true);
-  });
-
 };

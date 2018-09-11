@@ -43,7 +43,7 @@ const init = async () => {
   app.post('/tokens/blacklist', handlers.blackHandler);
 
   app.listen(config.http.port);
-  log.info(`Tx service started at port ${config.http.port}`);
+  log.info(`Auth service started at port ${config.http.port}`);
 };
 
 module.exports = init();

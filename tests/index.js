@@ -11,9 +11,9 @@ const config = require('../config'),
   models = require('../models'),
   spawn = require('child_process').spawn,
   fuzzTests = require('./fuzz'),
-  // performanceTests = require('./performance'),
+  performanceTests = require('./performance'),
   featuresTests = require('./features'),
-  // blockTests = require('./blocks'),
+  blockTests = require('./blocks'),
   Promise = require('bluebird'),
   mongoose = require('mongoose'),
   ctx = {};
@@ -37,8 +37,8 @@ describe('core/txService', function () {
 
 
   // describe('block', () => blockTests(ctx));
-  //describe('features', () => featuresTests(ctx));
+  describe('features', () => featuresTests(ctx));
   describe('fuzz', () => fuzzTests(ctx));
-  // describe('performance', () => performanceTests(ctx));
+  describe('performance', () => performanceTests(ctx));
 
 });

@@ -8,8 +8,11 @@ const models = require('../../models'),
   config = require('../config'),
   expect = require('chai').expect,
   request = require('request-promise'),
-  jwt = require('jsonwebtoken'),
+  generateToken = require('../utils/generateToken'),
+  generateUserToken = require('../utils/generateUserToken'),
+  addToBlacklist = require('../utils/addToBlacklist'),
   password = require('../../utils/password');
+
 
 
 module.exports = (ctx) => {
@@ -20,107 +23,147 @@ module.exports = (ctx) => {
 
     ctx.client = await models.clientModel.create({
       clientId: 11, 
-      secret: await password.hash('secret')});
-
-    const response = await request(`http://localhost:${config.http.port}/tokens`, {
-      method: 'POST',
-      json: {
-        id: ctx.client.clientId,
-        secret: ctx.client.secret,
-        scopes: ['abba']
-      }
+      secret: await password.hash('secret')
     });
-    ctx.token = response.token;
-    expect(ctx.token).to.be.a('string');
+    ctx.token = await generateToken(ctx.client, ['abba']);
+    ctx.userToken = await generateUserToken(ctx.token, 'userId', ['abba']);
+  });
+
+  after (async () => {
+    delete ctx.client;
+    delete ctx.token;
+    delete ctx.userToken;
   });
 
 
-  it('POST /user/tokens - create token', async () => {
+  it('POST /user/tokens - without parameters - error', async () => {
     const response = await request(`http://localhost:${config.http.port}/user/tokens`, {
       method: 'POST',
       json: {
-        token: ctx.token,
-        userId: 'userId',
-        scopes: ['abba']
-      }
-    });
-    //after generate address
-    expect(response.ok).to.equal(true);
-    const token = jwt.decode(response.token);
-
-    expect(token.clientId).to.equal(ctx.client.clientId);
-    expect(token.userId).to.equal('userId');
-    expect(token.scopes).deep.equal(['abba']);
-
-  });
-
-
-  it('GET /user/tokens/check - create token and check that this works', async () => {
-    let response = await request(`http://localhost:${config.http.port}/user/tokens`, {
-      method: 'POST',
-      json: {
-        token: ctx.token,
-        userId: 'userId',
-        scopes: ['bart', 'abba']
-      }
-    });
-    const token = response.token;
-
-    response = await request(`http://localhost:${config.http.port}/user/tokens/check`, {
-      method: 'GET',
-      json: {
-        token,
-        userId: 'userId',
-        scope: 'abba'
-      }
-    });
-    expect(response.ok).to.equal(true);
-  });
-
-  it('POST /tokens/blacklist - create token, check that work, add to blacklist and check that not work', async () => {
-    let response = await request(`http://localhost:${config.http.port}/user/tokens`, {
-      method: 'POST',
-      json: {
-        token: ctx.token,
-        userId: 'userId',
-        scopes: ['bart', 'abba']
-      }
-    });
-    const token = response.token;
-
-    response = await request(`http://localhost:${config.http.port}/user/tokens/check`, {
-      method: 'GET',
-      json: {
-        token,
-        userId: 'userId',
-        scope: 'abba'
-      }
-    });
-    //after generate address
-    expect(response.ok).to.equal(true);
-
-    response = await request(`http://localhost:${config.http.port}/tokens/blacklist`, {
-      method: 'POST',
-      json: {
-        token: ctx.token,
-        blackToken: token
-      }
-    });
-    //after generate address
-    expect(response.ok).to.equal(true);
-
-    response = await request(`http://localhost:${config.http.port}/user/tokens/check`, {
-      method: 'GET',
-      json: {
-        token,
-        userId: 'userId',
-        scope: 'abba'
       }
     }).catch(e => { return e; });
-    //after generate address
     expect(response.statusCode).to.equal(400);
-    expect(response.error).to.equal('Failure in check user token request');
 
   });
+
+
+  it('POST /user/tokens - with not right token - error', async () => {
+    const response = await request(`http://localhost:${config.http.port}/user/tokens`, {
+      method: 'POST',
+      json: {
+        token: 'sdfsdfsd',
+        userId: 'userId',
+        scopes: ['bart', 'abba']
+      }
+    }).catch(e => { return e; });
+    expect(response.statusCode).to.equal(400);
+
+  });
+
+
+  it('POST /user/tokens - with user token - error', async () => {
+    const response = await request(`http://localhost:${config.http.port}/user/tokens`, {
+      method: 'POST',
+      json: {
+        token: ctx.userToken,
+        userId: 'userId',
+        scopes: ['bart', 'abba']
+      }
+    }).catch(e => { return e; });
+    expect(response.statusCode).to.equal(400);
+
+  });
+
+  it('POST /user/tokens - with black token - error', async () => {
+    const token = generateToken(ctx.client, ['abba']);
+    await addToBlacklist(token, token);
+
+    const response = await request(`http://localhost:${config.http.port}/user/tokens`, {
+      method: 'POST',
+      json: {
+        token: token,
+        userId: 'userId',
+        scopes: ['bart', 'abba']
+      }
+    }).catch(e => { return e; });
+    expect(response.statusCode).to.equal(400);
+
+  });
+
+
+  it('GET /user/tokens/check - without parameters - error', async () => {
+    const response = await request(`http://localhost:${config.http.port}/user/tokens/check`, {
+      method: 'GET',
+      json: {
+      }
+    }).catch(e => { return e; });
+    expect(response.statusCode).to.equal(400);
+  });
+
+  it('GET /user/tokens/check - with not right token - error', async () => {
+    const response = await request(`http://localhost:${config.http.port}/user/tokens/check`, {
+      method: 'GET',
+      json: {
+        token: 'adasdas',
+        scope: 'abba',
+        userId: 'userId'
+      }
+    }).catch(e => { return e; });
+    expect(response.statusCode).to.equal(400);
+  });
+
+
+
+  it('GET /user/tokens/check - with not right scope - error', async () => {
+    const response = await request(`http://localhost:${config.http.port}/user/tokens/check`, {
+      method: 'GET',
+      json: {
+        token: ctx.userToken,
+        scope: 'bart',
+        userId: 'userId'
+      }
+    }).catch(e => { return e; });
+    expect(response.statusCode).to.equal(400);
+  });
+
+  it('GET /user/tokens/check - with not right userId - error', async () => {
+    const response = await request(`http://localhost:${config.http.port}/user/tokens/check`, {
+      method: 'GET',
+      json: {
+        token: ctx.userToken,
+        scope: 'abba',
+        userId: 'clientId'
+      }
+    }).catch(e => { return e; });
+    expect(response.statusCode).to.equal(400);
+  });
+
+  it('GET /user/tokens/check - with clientToken - error', async () => {
+    const response = await request(`http://localhost:${config.http.port}/user/tokens/check`, {
+      method: 'GET',
+      json: {
+        token: ctx.token,
+        scope: 'abba',
+        userId: 'clientId'
+      }
+    }).catch(e => { return e; });
+    expect(response.statusCode).to.equal(400);
+  });
+
+  it('GET /user/tokens/check - with blacklist token - error', async () => {
+    const token = generateToken(ctx.client, ['abba']);
+    const userToken = generateUserToken(token, 'userId', 'abba');
+    await addToBlacklist(token, userToken);
+    const response = await request(`http://localhost:${config.http.port}/user/tokens/check`, {
+      method: 'GET',
+      json: {
+        token: userToken,
+        scope: 'abba',
+        userId: 'userId'
+      }
+    }).catch(e => { return e; });
+    expect(response.statusCode).to.equal(400);
+  });
+
 
 };

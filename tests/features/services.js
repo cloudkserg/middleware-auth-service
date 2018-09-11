@@ -6,7 +6,9 @@
 
 const models = require('../../models'),
   config = require('../config'),
+  password = require('../../utils/password'),
   expect = require('chai').expect,
+  generateToken = require('../utils/generateToken'),
   request = require('request-promise');
 
 
@@ -31,6 +33,25 @@ module.exports = (ctx) => {
     expect(response.ok).to.equal(true);
   });
 
+
+  it('POST /services - create duplicate service - remains old service with old password', async () => {
+    const response = await request(`http://localhost:${config.http.port}/services`, {
+      method: 'POST',
+      json: {
+        id: 'service',
+        secret: 'password1'
+      }
+    });
+    //after generate address
+    expect(response.ok).to.equal(true);
+
+
+    const clients = await models.clientModel.find({clientId: 'service'});
+    expect(clients.length).to.equal(1);
+
+    expect(password.check('password', clients[0].secret)).to.equal(true);
+  });
+
   it('POST /services - create service and create token', async () => {
     await request(`http://localhost:${config.http.port}/services`, {
       method: 'POST',
@@ -40,16 +61,8 @@ module.exports = (ctx) => {
       }
     });
 
-
-    const response = await request(`http://localhost:${config.http.port}/tokens`, {
-      method: 'POST',
-      json: {
-        id: 'service',
-        secret: 'password',
-        scopes: ['abba']
-      }
-    });
-    expect(response.ok).to.be.equal(true);
+    const result = await generateToken({clientId: 'service', secret: 'password'}, ['abba']);
+    expect(result).to.be.equal(true);
   });
 
 };

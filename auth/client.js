@@ -48,7 +48,10 @@ module.exports = {
    * @returns {{clientId: String, scopes: String[]}}
    */
   validToken: async (token) => {
-    return tokenLib.valid(token);
+    const tokenData = tokenLib.valid(token);
+    if (await blacklist.has(token)) 
+      throw new errors.BlacklistError('client token in blacklist');
+    return tokenData;
   },
 
   /**

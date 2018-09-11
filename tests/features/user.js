@@ -9,6 +9,8 @@ const models = require('../../models'),
   expect = require('chai').expect,
   request = require('request-promise'),
   jwt = require('jsonwebtoken'),
+  generateToken = require('../utils/generateToken'),
+  generateUserToken = require('../utils/generateUserToken'),
   password = require('../../utils/password');
 
 
@@ -20,18 +22,14 @@ module.exports = (ctx) => {
 
     ctx.client = await models.clientModel.create({
       clientId: 11, 
-      secret: await password.hash('secret')});
-
-    const response = await request(`http://localhost:${config.http.port}/tokens`, {
-      method: 'POST',
-      json: {
-        id: ctx.client.clientId,
-        secret: ctx.client.secret,
-        scopes: ['abba']
-      }
+      secret: await password.hash('secret')
     });
-    ctx.token = response.token;
-    expect(ctx.token).to.be.a('string');
+    ctx.token = await generateToken(ctx.client, ['abba']);
+  });
+
+  after (async () => {
+    delete ctx.client;
+    delete ctx.token;
   });
 
 
@@ -56,17 +54,9 @@ module.exports = (ctx) => {
 
 
   it('GET /user/tokens/check - create token and check that this works', async () => {
-    let response = await request(`http://localhost:${config.http.port}/user/tokens`, {
-      method: 'POST',
-      json: {
-        token: ctx.token,
-        userId: 'userId',
-        scopes: ['bart', 'abba']
-      }
-    });
-    const token = response.token;
+    const token = await generateUserToken(ctx.token, 'userId', ['abba', 'bart']);
 
-    response = await request(`http://localhost:${config.http.port}/user/tokens/check`, {
+    const response = await request(`http://localhost:${config.http.port}/user/tokens/check`, {
       method: 'GET',
       json: {
         token,
@@ -77,50 +67,5 @@ module.exports = (ctx) => {
     expect(response.ok).to.equal(true);
   });
 
-  it('POST /tokens/blacklist - create token, check that work, add to blacklist and check that not work', async () => {
-    let response = await request(`http://localhost:${config.http.port}/user/tokens`, {
-      method: 'POST',
-      json: {
-        token: ctx.token,
-        userId: 'userId',
-        scopes: ['bart', 'abba']
-      }
-    });
-    const token = response.token;
-
-    response = await request(`http://localhost:${config.http.port}/user/tokens/check`, {
-      method: 'GET',
-      json: {
-        token,
-        userId: 'userId',
-        scope: 'abba'
-      }
-    });
-    //after generate address
-    expect(response.ok).to.equal(true);
-
-    response = await request(`http://localhost:${config.http.port}/tokens/blacklist`, {
-      method: 'POST',
-      json: {
-        token: ctx.token,
-        blackToken: token
-      }
-    });
-    //after generate address
-    expect(response.ok).to.equal(true);
-
-    response = await request(`http://localhost:${config.http.port}/user/tokens/check`, {
-      method: 'GET',
-      json: {
-        token,
-        userId: 'userId',
-        scope: 'abba'
-      }
-    }).catch(e => { return e; });
-    //after generate address
-    expect(response.statusCode).to.equal(400);
-    expect(response.error).to.equal('Failure in check user token request');
-
-  });
 
 };
