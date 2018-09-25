@@ -13,7 +13,6 @@ const config = require('../config'),
   fuzzTests = require('./fuzz'),
   performanceTests = require('./performance'),
   featuresTests = require('./features'),
-  blockTests = require('./blocks'),
   Promise = require('bluebird'),
   mongoose = require('mongoose'),
   ctx = {};
@@ -36,7 +35,6 @@ describe('core/txService', function () {
   });
 
 
-  // describe('block', () => blockTests(ctx));
   describe('features', () => featuresTests(ctx));
   describe('fuzz', () => fuzzTests(ctx));
   describe('performance', () => performanceTests(ctx));
