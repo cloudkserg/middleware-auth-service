@@ -24,6 +24,7 @@ module.exports = (ctx) => {
       clientId: 11, 
       secret: await password.hash('secret')
     });
+    ctx.client.secret = 'secret';
     ctx.token = await generateToken(ctx.client, ['abba']);
   });
 

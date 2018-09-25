@@ -31,7 +31,9 @@ module.exports = {
     const client = await models.clientModel.findOne({clientId});
     if (!client) 
       throw new errors.ValidateError('not found client');
-    return await password.check(secret, client.secret);
+    const checkPass = await password.check(secret, client.secret);
+    if (!checkPass)
+        throw new errors.ValidateError('not found client');
   },
 
 

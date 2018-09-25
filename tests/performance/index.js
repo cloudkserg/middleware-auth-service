@@ -9,6 +9,7 @@ const config = require('../config'),
   models = require('../../models'),
   _ = require('lodash'),
   memwatch = require('memwatch-next'),
+  uniqid = require('uniqid'),
   expect = require('chai').expect,
   request = require('request-promise'),
   generateToken = require('../utils/generateToken'),
@@ -16,6 +17,7 @@ const config = require('../config'),
   generateUserToken = require('../utils/generateUserToken'),
   addToBlacklist = require('../utils/addToBlacklist'),
   checkUserToken = require('../utils/checkUserToken'),
+  password = require('../../utils/password'),
   Promise = require('bluebird');
 
 
@@ -28,7 +30,8 @@ module.exports = (ctx) => {
     ctx.client = await models.clientModel.create({
       clientId: 11, 
       secret: await password.hash('secret')
-    });
+   });
+   ctx.client.secret = 'secret';
   });
 
   after (async () => {
@@ -39,11 +42,16 @@ module.exports = (ctx) => {
     let hd = new memwatch.HeapDiff();
 
     await Promise.map(_.range(0, 100), async () => {
-      const token = await generateToken(ctx.client, ['abba']);
-      await checkToken(ctx.client.clientId, token, 'abba');
-      await checkToken(ctx.client.clientId, token, 'abba2');
+      const client = await models.clientModel.create({
+        clientId: uniqid(), 
+        secret: await password.hash('secret')
+      });
+      client.secret = 'secret';
+      const token = await generateToken(client, ['abba']);
+      await checkToken(client.clientId, token, 'abba');
+      await checkToken(client.clientId, token, 'abba2');
       await addToBlacklist(token, token);
-      await checkUserToken(ctx.client.clientId, token, 'abba');
+      await checkUserToken(client.clientId, token, 'abba');
     });
     let diff = hd.end();
     let leakObjects = _.filter(diff.change.details, detail => detail.size_bytes / 1024 / 1024 > 3);
@@ -55,7 +63,12 @@ module.exports = (ctx) => {
     let hd = new memwatch.HeapDiff();
 
     await Promise.map(_.range(0, 100), async () => {
-      const token = await generateToken(ctx.client, ['abba']);
+      const client = await models.clientModel.create({
+        clientId: uniqid(), 
+        secret: await password.hash('secret')
+      });
+      client.secret = 'secret';
+      const token = await generateToken(client, ['abba']);
       const userToken = await generateUserToken(token, 'userId', ['abba']);
       await checkUserToken('userId', userToken, 'abba');
       await checkUserToken('userId', userToken, 'abba2');
@@ -73,7 +86,12 @@ module.exports = (ctx) => {
 
     const start = Date.now();
     await Promise.map(_.range(0, 100), async () => {
-      const token = await generateToken(ctx.client, ['abba']);
+      const client = await models.clientModel.create({
+        clientId: uniqid(), 
+        secret: await password.hash('secret')
+      });
+      client.secret = 'secret';
+      const token = await generateToken(client, ['abba']);
       await checkToken(ctx.client.clientId, token, 'abba');
       await checkToken(ctx.client.clientId, token, 'abba2');
       await addToBlacklist(token, token);
@@ -87,7 +105,12 @@ module.exports = (ctx) => {
 
     const start = Date.now();
     await Promise.map(_.range(0, 100), async () => {
-      const token = await generateToken(ctx.client, ['abba']);
+      const client = await models.clientModel.create({
+        clientId: uniqid(), 
+        secret: await password.hash('secret')
+      });
+      client.secret = 'secret';
+      const token = await generateToken(client, ['abba']);
       const userToken = await generateUserToken(token, 'userId', ['abba']);
       await checkUserToken('userId', userToken, 'abba');
       await checkUserToken('userId', userToken, 'abba2');

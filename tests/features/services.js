@@ -9,6 +9,7 @@ const models = require('../../models'),
   password = require('../../utils/password'),
   expect = require('chai').expect,
   generateToken = require('../utils/generateToken'),
+  checkToken = require('../utils/checkToken'),
   request = require('request-promise');
 
 
@@ -49,7 +50,7 @@ module.exports = (ctx) => {
     const clients = await models.clientModel.find({clientId: 'service'});
     expect(clients.length).to.equal(1);
 
-    expect(password.check('password', clients[0].secret)).to.equal(true);
+    expect(await password.check('password', clients[0].secret)).to.equal(true);
   });
 
   it('POST /services - create service and create token', async () => {
@@ -61,7 +62,8 @@ module.exports = (ctx) => {
       }
     });
 
-    const result = await generateToken({clientId: 'service', secret: 'password'}, ['abba']);
+    const token = await generateToken({clientId: 'service', secret: 'password'}, ['abba']);
+    const result = await checkToken('service', token, 'abba');
     expect(result).to.be.equal(true);
   });
 

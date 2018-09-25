@@ -23,6 +23,7 @@ module.exports = (ctx) => {
     ctx.client = await models.clientModel.create({
       clientId: 11, 
       secret: await password.hash('secret')});
+    ctx.client.secret = 'secret';
   });
 
   after (async () => {
@@ -68,12 +69,12 @@ module.exports = (ctx) => {
     expect(token.clientId).to.equal(ctx.client.clientId);
     expect(token.scopes).deep.equal(['abba']);
 
-    const result = await checkToken(token.clientId, token, 'abba');
+    const result = await checkToken(token.clientId, response.token, 'abba');
     expect(result).to.equal(true);
   });
 
   it('POST /tokens/blacklist - create token, check that work, add to blacklist and check that not work', async () => {
-    const token = generateToken(ctx.client, ['abba']);
+    const token = await generateToken(ctx.client, ['abba']);
 
     let result = await checkToken(ctx.client.clientId, token, 'abba');
     expect(result).to.equal(true);
@@ -98,13 +99,13 @@ module.exports = (ctx) => {
 
 
   it('GET /tokens/check - generate token with two scopes and check that token works', async () => {
-    const responseOne = await generateToken(ctx.client, ['abba', 'bart']);
+    const token  = await generateToken(ctx.client, ['abba', 'bart']);
 
     const response = await request(`http://localhost:${config.http.port}/tokens/check`, {
       method: 'GET',
       json: {
         id: ctx.client.clientId,
-        token: responseOne.token,
+        token: token,
         scope: 'bart'
       }
     });

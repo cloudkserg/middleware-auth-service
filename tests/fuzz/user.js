@@ -25,6 +25,7 @@ module.exports = (ctx) => {
       clientId: 11, 
       secret: await password.hash('secret')
     });
+    ctx.client.secret = 'secret';
     ctx.token = await generateToken(ctx.client, ['abba']);
     ctx.userToken = await generateUserToken(ctx.token, 'userId', ['abba']);
   });
@@ -75,8 +76,9 @@ module.exports = (ctx) => {
   });
 
   it('POST /user/tokens - with black token - error', async () => {
-    const token = generateToken(ctx.client, ['abba']);
-    await addToBlacklist(token, token);
+    const token = await generateToken(ctx.client, ['abba']);
+    const mainToken = await generateToken(ctx.client, ['abba']);
+    await addToBlacklist(mainToken, token);
 
     const response = await request(`http://localhost:${config.http.port}/user/tokens`, {
       method: 'POST',
@@ -151,8 +153,8 @@ module.exports = (ctx) => {
   });
 
   it('GET /user/tokens/check - with blacklist token - error', async () => {
-    const token = generateToken(ctx.client, ['abba']);
-    const userToken = generateUserToken(token, 'userId', 'abba');
+    const token = await generateToken(ctx.client, ['abba']);
+    const userToken = await generateUserToken(token, 'userId', ['abba']);
     await addToBlacklist(token, userToken);
     const response = await request(`http://localhost:${config.http.port}/user/tokens/check`, {
       method: 'GET',

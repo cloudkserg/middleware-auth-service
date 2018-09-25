@@ -25,7 +25,7 @@ describe('core/txService', function () {
 
   before (async () => {
     models.init();
-    ctx.serverPid = spawn('node', ['index.js'], {env: process.env, stdio: 'inherit'});
+    ctx.serverPid = spawn('node', ['index.js'], {env: process.env, stdio: 'ignore'});
     await Promise.delay(5000);
   });
 

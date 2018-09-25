@@ -4,6 +4,7 @@
  * @author Kirill Sergeev <cloudkserg11@gmail.com>
  */
 var jwt = require('jsonwebtoken'),
+  uniqid = require('uniqid'),
   config = require('../../config'),
   errors = require('../../errors');
 const TYPE = 'user';
@@ -15,7 +16,7 @@ module.exports = {
    * @param {String} userId
    */
   create: (clientId, scopes, userId) => {
-    return jwt.sign({ clientId, scopes, userId, type: TYPE}, config.jwt.secret, 
+    return jwt.sign({ clientId, scopes, userId, type: TYPE, data: uniqid()}, config.jwt.secret, 
       { expiresIn: config.jwt.expires }
     );
   },

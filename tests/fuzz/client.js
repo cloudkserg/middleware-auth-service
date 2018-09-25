@@ -24,6 +24,7 @@ module.exports = (ctx) => {
       clientId: 11, 
       secret: await password.hash('secret')
     });
+    ctx.client.secret = 'secret';
     ctx.token = await generateToken(ctx.client, ['abba']);
     ctx.userToken = await generateUserToken(ctx.token, 'userId', ['abba']);
   });
@@ -214,8 +215,9 @@ module.exports = (ctx) => {
 
 
   it('GET /tokens/check - with black token  - error', async () => {
+    const mainToken = await generateToken(ctx.client, ['auth']);
     const token = await generateToken(ctx.client, ['abba']);
-    await addToBlacklist(ctx.token, token);
+    await addToBlacklist(mainToken, token);
 
     const response = await request(`http://localhost:${config.http.port}/tokens/check`, {
       method: 'GET',
