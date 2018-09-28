@@ -193,6 +193,11 @@ The options are presented below:
 | JWT_SECRET | the key -string for generate jwt tokens
 | JWT_EXPIRES | the time, for which live tokens | default = 600c
 | JWT_REFRESH_EXPIRES | the time, for which live tokens | default = 6000c
+| SYSTEM_RABBIT_URI   | rabbitmq URI connection string for infrastructure
+| SYSTEM_RABBIT_SERVICE_NAME   | rabbitmq service name for infrastructure
+| SYSTEM_RABBIT_EXCHANGE   | rabbitmq exchange name for infrastructure
+| CHECK_SYSTEM | check infrastructure or not (default = true)
+| CHECK_WAIT_TIME | interval for wait respond from requirements
 
 
 License
