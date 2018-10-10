@@ -13,11 +13,11 @@
     "joi": "^13.6.0",
     "jsonwebtoken": "^8.3.0",
     "lodash": "^4.17.10",
+    "middleware_common_infrastructure": "github:ChronoBank/middleware-common-infrastructure.git",
     "mongoose": "^5.2.9",
     "mongoose-ttl": "0.0.3",
     "request": "^2.88.0",
     "request-promise": "^4.2.2",
-    "middleware_common_infrastructure": "^1.0.4",
     "require-all": "^3.0.0",
     "uniqid": "^5.0.3"
   },
