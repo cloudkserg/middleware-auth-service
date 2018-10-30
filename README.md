@@ -169,6 +169,66 @@ Response:
 {ok: true}
 ```
 
+
+#### Scheme of logick with social services
+
+## Oauth init
+
+```
+Client  --> Auth
+
+GET /oauth/:name
+
+Request:
+name - {String} name of oauth scheme in oauth.json in config folder
+
+Response:
+After success authorization user redirect to successRedirect in oauth.json for this scheme
+in Cookie we have two vars:
+Token = token for connecting with ALLOWED_SOCIAL_SCOPES
+Authenticator = name of using auth scheme
+```
+
+##### сonfigure your oauth.json for work with social services
+
+To apply your configuration, create a oauth.json file in config folder of repo (in case it's not present already).
+Below is the expamle configuration:
+
+```
+{
+    "timex-local-google": {
+        "strategy": "google",
+        "purpose": "exchange",
+        "scope": [
+            "https://www.googleapis.com/auth/plus.login"
+        ],
+        "routes": {
+            "successRedirect": "/server",
+            "failureRedirect": "/"
+        },
+        "options": {
+            "clientID": "2823423423432",
+            "clientSecret": "234h24jk3h2kdsffsdf",
+            "callbackURL": "https://exchange.local.ntr1x.com/oauth/timex-local-facebook/callback"
+        }
+    },
+    "timex-local-facebook": {
+        "strategy": "facebook",
+        "purpose": "exchange",
+        "scope": [],
+        "routes": {
+            "successRedirect": "/server",
+            "failureRedirect": "/"
+        },
+        "options": {
+            "clientID": "2823423423432",
+            "clientSecret": "234h24jk3h2kdsffsdf",
+            "callbackURL": "https://exchange.local.ntr1x.com/oauth/timex-local-facebook/callback"
+        }
+    }
+}
+```
+
 ##### сonfigure your .env
 
 To apply your configuration, create a .env file in root folder of repo (in case it's not present already).
@@ -198,6 +258,8 @@ The options are presented below:
 | SYSTEM_RABBIT_EXCHANGE   | rabbitmq exchange name for infrastructure
 | CHECK_SYSTEM | check infrastructure or not (default = true)
 | CHECK_WAIT_TIME | interval for wait respond from requirements
+| SOCIAL_ALLOWED_SCOPES | allowed scopes for social tokens, though comma |default = middleware-signing-service
+| NAME | name for client id in token sign with this service
 
 
 License

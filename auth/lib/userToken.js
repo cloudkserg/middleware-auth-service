@@ -15,8 +15,11 @@ module.exports = {
    * @param {String[]} scopes
    * @param {String} userId
    */
-  create: (clientId, scopes, userId) => {
-    return jwt.sign({ clientId, scopes, userId, type: TYPE, data: uniqid()}, config.jwt.secret, 
+  create: (clientId, scopes, userId, data) => {
+    if (!data)
+      data = {};
+    data['uniqid'] = uniqid();
+    return jwt.sign({ clientId, scopes, userId, type: TYPE, data}, config.jwt.secret, 
       { expiresIn: config.jwt.expires }
     );
   },

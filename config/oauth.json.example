@@ -1,0 +1,32 @@
+{
+    "timex-local-google": {
+        "strategy": "google",
+        "purpose": "exchange",
+        "scope": [
+            "https://www.googleapis.com/auth/plus.login"
+        ],
+        "routes": {
+            "successRedirect": "/server",
+            "failureRedirect": "/"
+        },
+        "options": {
+            "clientID": "2823423423432",
+            "clientSecret": "234h24jk3h2kdsffsdf",
+            "callbackURL": "https://exchange.local.ntr1x.com/oauth/timex-local-facebook/callback"
+        }
+    },
+    "timex-local-facebook": {
+        "strategy": "facebook",
+        "purpose": "exchange",
+        "scope": [],
+        "routes": {
+            "successRedirect": "/server",
+            "failureRedirect": "/"
+        },
+        "options": {
+            "clientID": "2823423423432",
+            "clientSecret": "234h24jk3h2kdsffsdf",
+            "callbackURL": "https://exchange.local.ntr1x.com/oauth/timex-local-facebook/callback"
+        }
+    }
+}

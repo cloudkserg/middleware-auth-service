@@ -33,7 +33,7 @@ module.exports = {
       throw new errors.ValidateError('not found client');
     const checkPass = await password.check(secret, client.secret);
     if (!checkPass)
-        throw new errors.ValidateError('not found client');
+      throw new errors.ValidateError('not found client');
   },
 
 

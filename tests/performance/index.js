@@ -30,8 +30,8 @@ module.exports = (ctx) => {
     ctx.client = await models.clientModel.create({
       clientId: 11, 
       secret: await password.hash('secret')
-   });
-   ctx.client.secret = 'secret';
+    });
+    ctx.client.secret = 'secret';
   });
 
   after (async () => {

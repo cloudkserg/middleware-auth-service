@@ -4,7 +4,7 @@
  * @author Kirill Sergeev <cloudkserg11@gmail.com>
  */
 const request = require('request-promise'),
-    config = require('../config');
+  config = require('../config');
 
 module.exports = async (token, blackToken) => {
   const tokenResponse = await request(`http://localhost:${config.http.port}/tokens/blacklist`, {

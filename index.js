@@ -13,6 +13,7 @@ const mongoose = require('mongoose'),
   InfrastructureService = require('middleware_common_infrastructure/InfrastructureService'),
   bunyan = require('bunyan'),
   handlers = require('./handlers'),
+  socialRoutes = require('./routes/socialRoutes'),
   log = bunyan.createLogger({name: 'auth-service'}),
   helmet = require('helmet');
 
@@ -64,6 +65,8 @@ const init = async () => {
   app.get('/user/tokens/check', handlers.checkUserTokenHandler);
 
   app.post('/tokens/blacklist', handlers.blackHandler);
+
+  socialRoutes(app); 
 
   app.listen(config.http.port);
   log.info(`Auth service started at port ${config.http.port}`);

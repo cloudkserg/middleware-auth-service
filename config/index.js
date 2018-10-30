@@ -8,6 +8,11 @@
  * @author Kirill Sergeev <cloudkserg11@gmail.com>
 */
 require('dotenv').config();
+const fs = require('fs'),
+  path = require('path');
+
+const oauthPath = path.join(__dirname, 'oauth.json');
+const oauth = fs.existsSync(oauthPath) ? require(oauthPath) : {};
 module.exports = {
   http: {
     port: parseInt(process.env.REST_PORT) || 8081,
@@ -18,16 +23,22 @@ module.exports = {
   },
   system: {
     rabbit: {
-        url: process.env.SYSTEM_RABBIT_URI || process.env.RABBIT_URI || 'amqp://localhost:5672',
-        exchange: process.env.SYSTEM_RABBIT_EXCHANGE || 'internal',
-        serviceName: process.env.SYSTEM_RABBIT_SERVICE_NAME || 'system' 
+      url: process.env.SYSTEM_RABBIT_URI || process.env.RABBIT_URI || 'amqp://localhost:5672',
+      exchange: process.env.SYSTEM_RABBIT_EXCHANGE || 'internal',
+      serviceName: process.env.SYSTEM_RABBIT_SERVICE_NAME || 'system' 
     },
     waitTime: process.env.SYSTEM_WAIT_TIME ? parseInt(process.env.SYSTEM_WAIT_TIME) : 10000, 
     checkSystem: process.env.CHECK_SYSTEM ? parseInt(process.env.CHECK_SYSTEM) : true,
   },
   jwt: {
     secret: process.env.JWT_SECRET,
-    expires: process.env.JWT_EXPIRES ? parseInt(process.env.JWT_EXPIRES) : 600,
+    expires: process.env.JWT_EXPIRES ? parseInt(process.env.JWT_EXPIRES) : 6000,
     refreshExpires: process.env.JWT_REFRESH_EXPIRES ? parseInt(process.env.JWT_REFRESH_EXPIRES) : 6000
-  }
+  },
+  id: process.env.NAME || 'middleware_auth_service',
+ 
+  social: {
+    scopes: (process.env.SOCIAL_ALLOWED_SCOPES || 'middleware-signing-service').split(','),
+    oauth
+  },
 };
